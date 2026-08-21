@@ -1,1 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap');
+
+@theme {
+   --color-main: #F27732;
+   --color-second: #0E2953;
+   --color-contrast: #319FA1;
+   --font-inter: "Inter", sans-serif;
+}
+
+* {
+   @apply font-inter;
+}
