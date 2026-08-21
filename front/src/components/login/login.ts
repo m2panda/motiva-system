@@ -1,4 +1,4 @@
-import { Component, signal, WritableSignal } from '@angular/core';
+import { Component, inject, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputTextModule } from 'primeng/inputtext';
@@ -9,9 +9,22 @@ import { CommonModule } from '@angular/common';
 import { CheckboxModule } from 'primeng/checkbox';
 import { LabelModule } from 'primeng/label';
 import { ButtonDirective } from 'primeng/button';
+import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
 
 @Component({
-   imports: [IftaLabelModule, InputTextModule, InputPasswordModule, IconFieldModule, InputIconModule, CommonModule, CheckboxModule, LabelModule, ButtonDirective],
+   imports: [
+      IftaLabelModule,
+      InputTextModule,
+      InputPasswordModule,
+      IconFieldModule,
+      InputIconModule,
+      CommonModule,
+      CheckboxModule,
+      LabelModule,
+      ButtonDirective,
+      FormsModule,
+   ],
    selector: 'fi-login',
    template: `
    @let mask = $mask();
@@ -24,17 +37,17 @@ import { ButtonDirective } from 'primeng/button';
                <span class="text-sm text-main ">Plataforma administrativa y acceso de clientes</span>
             </div>
 
-            <form class="flex flex-col w-full gap-3">
+            <form class="flex flex-col w-full gap-3" (submit)="$event.preventDefault()">
                <h2 class="w-full text-2xl text-second">Inicio de sesión</h2>
 
                <p-iftalabel class="w-full">
-                  <input pInputText id="username" type="text" autocomplete="off" [fluid]="true" />
+                  <input pInputText id="username" name="username" type="text" autocomplete="off" [fluid]="true" [(ngModel)]="$username" />
                   <label for="username">Nombre de usuario</label>
                </p-iftalabel>
 
                <p-iftalabel class="w-full">
                   <p-iconfield>
-                     <input pInputPassword [fluid]="true" [(mask)]="$mask"/>
+                     <input pInputPassword [fluid]="true" [(mask)]="$mask" [(ngModel)]="$password" name="password" id="password" />
                      <p-inputicon
                         (click)="$mask.set(!mask)"
                         class="cursor-pointer -translate-y-1/2"
@@ -51,7 +64,7 @@ import { ButtonDirective } from 'primeng/button';
                   <label pLabel for="save-session" class="text-sm">Recordar contraseña</label>
                </div>
 
-               <button pButton class="bg-contrast! w-fit px-6! ml-auto">Entrar</button>
+               <button pButton class="bg-contrast! w-fit px-6! ml-auto" (click)="enter()">Entrar</button>
             </form>
 
             <ul class="flex flex-col gap-1 [&>li]:flex [&>li]:items-center [&>li]:justify-content [&>li]:gap-2 [&_i]:text-main [&_i]:text-xl [&_span]:text-main">
@@ -80,5 +93,47 @@ import { ButtonDirective } from 'primeng/button';
    </section>`,
 })
 export class Login {
-   public $mask: WritableSignal<boolean> = signal(false);
+   public $mask: WritableSignal<boolean> = signal(true);
+   public $username: WritableSignal<string> = signal('');
+   public $password: WritableSignal<string> = signal('');
+
+   private readonly _message: MessageService = inject(MessageService);
+   private readonly _router: Router = inject(Router);
+
+   public enter(): void {
+      if (this.$username().trim() === '' || this.$password().trim() === '') {
+         this._message.add({
+            severity: "error",
+            summary: 'Error',
+            detail: 'Los campos no pueden estar vacios'
+         });
+
+         return
+      }
+
+      const userRegx: RegExp = /^[a-zA-Z0-9]+$/;
+      const passwordRegx: RegExp = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).+$/;
+
+      if (!userRegx.test(this.$username()) || !passwordRegx.test(this.$password())) {
+         this._message.add({
+            severity: "error",
+            summary: 'Error',
+            detail: 'Información inválida'
+         });
+
+         return
+      }
+
+      if (this.$username() !== 'alonzo' || this.$password() !== 'Prueba@123') {
+         this._message.add({
+            severity: "error",
+            summary: 'Error',
+            detail: 'Usuario o contraseña invalidos'
+         });
+
+         return
+      }
+
+      this._router.navigate(['/', 'dashboard'])
+   }
 }
